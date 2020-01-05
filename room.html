@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fortnite Escape Room</title>
+</head>
+<body>
+    <h1 style="text-align:center;">Fortnite Escape Room</h1>
+
+    <div id="input-section" style="text-align:center;">
+        <label for="server-field">Server: </label>
+        <input type="text" id="server-field" value="ws://192.168.0.232:8765">
+        <br>
+        <button type="button" onclick="start()" style="background-color:#4CAF50;padding:15px;text-align:center;font-size: 16px;">Start</button>
+        -
+        <button type="button" onclick="openFullscreen()" style="background-color:#CCC;padding:15px;text-align:center;font-size: 16px;">Full screen</button>
+    </div>
+
+    <p id="timer-field" style="text-align:center;font-size:80px;font-family:monospace"></p>
+
+    <hr>
+
+    <p id="tip-field" style="text-align:center;font-size:80px;font-family:monospace"></p>
+
+    <script>
+        function openFullscreen() {
+            var elem = document.documentElement;
+
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) { /* Firefox */
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function play_sound(sound_name) {
+            let sound_file = null;
+            if (sound_name === 'start') {
+                sound_file = "fortnite-headshot-sound.mp3";
+            }
+            else if (sound_name === 'tip') {
+                sound_file = "radio_beep.mp3";
+            }
+            else if (sound_name === 'failed') {
+                sound_file = "fortnite-death-sound-ear-rape.mp3";
+            }
+            else if (sound_name === 'storm') {
+                sound_file = "shtorm_eyeincoming.mp3";
+            }
+            else if (sound_name === 'victory') {
+                sound_file = "victory-royale.mp3";
+            }
+            else if (sound_name === 'shield') {
+                sound_file = "fortnite-shield-potion-fortnite-battle-royale-gaming-sound-effect-hd-sound-effects.mp3";
+            }
+            else if (sound_name === 'chest') {
+                sound_file = "chest_open.mp3";
+            }
+            else if (sound_name === 'dance') {
+                sound_file = "fortnite-dance-moves-emote-music-tv9iv8cxmo0-1.mp3";
+            }
+
+            if (sound_file) {
+                let sound_site = 'https://www.myinstants.com/media/sounds/';
+                let audio = new Audio(sound_site + sound_file);
+                audio.play();
+            }
+        }
+
+        function start() {
+            let serverAddress = document.getElementById("server-field").value;
+            ws = new WebSocket(serverAddress);
+
+            ws.onopen = function(event) {
+                ws.send("ROOM");
+            }
+
+            ws.onmessage = function (event) {
+                let text = event.data;
+                if (text.startsWith("TIME:")) {
+                    let timerValue = text.replace("TIME:", "");
+                    document.getElementById("timer-field").innerHTML = timerValue;
+                } else if (text.startsWith("TIP:")) {
+                    let tipValue = text.replace("TIP:", "");
+                    document.getElementById("tip-field").innerHTML = tipValue;
+                } else if (text.startsWith("SOUND:")) {
+                    let soundName = text.replace("SOUND:", "");
+                    play_sound(soundName);
+                }
+            }
+
+            document.getElementById("input-section").hidden = true;
+        }
+    </script>
+
+</body>
+</html>

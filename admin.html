@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fortnite Escape Admin</title>
+</head>
+<body>
+    <h1 style="text-align:center;">Fortnite Escape Admin</h1>
+
+    <div id="input-section" style="text-align:center;">
+        <label for="server-field">Server: </label>
+        <input type="text" id="server-field" value="ws://192.168.0.232:8765">
+        <br>
+        <label for="minutes-field">Minutes: </label>
+        <input type="number" id="minutes-field" value="40">
+        <br>
+        <button type="button" onclick="start()" style="background-color:#4CAF50;padding:15px;text-align:center;font-size: 16px;">Start</button>
+        -
+        <button type="button" onclick="openFullscreen()" style="background-color:#CCC;padding:15px;text-align:center;font-size: 16px;">Full screen</button>
+        <hr>
+    </div>
+
+    <div id="interact-section" style="text-align:center;" hidden>
+        <input type="text" id="input-field" value="" width="100%" style="width: 100%;font-size:40px;" onkeydown="send_tip(event)" placeholder="typ a hint + enter">
+        <hr>
+        <button type="button" onclick="shield()" style="background-color:#008CBA;padding:15px;text-align:center;font-size: 16px;">Shield</button>
+        <button type="button" onclick="chest()" style="background-color:#008CBA;padding:15px;text-align:center;font-size: 16px;">Chest</button>
+        <button type="button" onclick="dance()" style="background-color:#008CBA;padding:15px;text-align:center;font-size: 16px;">Dance</button>
+        -
+        <button type="button" onclick="victory()" style="background-color:#4CAF50;padding:15px;text-align:center;font-size: 16px;">Victory</button>
+        -
+        <button type="button" onclick="sanction(1)" style="background-color:#CCC;padding:15px;text-align:center;font-size: 16px;">1 minute sanction</button>
+        <button type="button" onclick="sanction(5)" style="background-color:#CCC;padding:15px;text-align:center;font-size: 16px;">5 minutes sanction</button>
+        -
+        <button type="button" onclick="stopIt()" style="background-color:#f44336;padding:15px;text-align:center;font-size: 16px;">Stop</button>
+        <hr>
+    </div>
+
+    <p id="timer-field" style="text-align:center;font-size:80px;font-family:monospace"></p>
+
+    <hr>
+
+    <p id="tip-field" style="text-align:center;font-size:80px;font-family:monospace"></p>
+
+    <script>
+        let ws;
+        let countDownDate;
+        let interval_timer;
+        let lastTimerValue;
+
+        function openFullscreen() {
+            var elem = document.documentElement;
+
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) { /* Firefox */
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function play_sound(sound_name) {
+            let sound_file = null;
+            if (sound_name === 'start') {
+                sound_file = "fortnite-headshot-sound.mp3";
+            }
+            else if (sound_name === 'tip') {
+                sound_file = "radio_beep.mp3";
+            }
+            else if (sound_name === 'failed') {
+                sound_file = "fortnite-death-sound-ear-rape.mp3";
+            }
+            else if (sound_name === 'storm') {
+                sound_file = "shtorm_eyeincoming.mp3";
+            }
+            else if (sound_name === 'victory') {
+                sound_file = "victory-royale.mp3";
+            }
+            else if (sound_name === 'shield') {
+                sound_file = "fortnite-shield-potion-fortnite-battle-royale-gaming-sound-effect-hd-sound-effects.mp3";
+            }
+            else if (sound_name === 'chest') {
+                sound_file = "chest_open.mp3";
+            }
+            else if (sound_name === 'dance') {
+                sound_file = "fortnite-dance-moves-emote-music-tv9iv8cxmo0-1.mp3";
+            }
+
+            if (sound_file) {
+                let sound_site = 'https://www.myinstants.com/media/sounds/';
+                let audio = new Audio(sound_site + sound_file);
+                audio.play();
+            }
+        }
+
+        function victory() {
+            clearInterval(interval_timer);
+            send_message("Victory Royale!");
+            ws.send("SOUND:victory");
+            play_sound('victory');
+        }
+
+        function shield() {
+            ws.send("SOUND:shield");
+            play_sound('shield');
+        }
+
+        function chest() {
+            ws.send("SOUND:chest");
+            play_sound('chest');
+        }
+
+        function dance() {
+            ws.send("SOUND:dance");
+            play_sound('dance');
+        }
+
+        function sanction(minutes) {
+            countDownDate -= minutes * 60 * 1000;
+            ws.send("SOUND:start");
+            play_sound('start');
+        }
+
+        function send_tip(event) {
+            var char = event.keyCode;
+            if(char === 13) {
+                let tipValue = document.getElementById("input-field").value;
+                send_message(tipValue);
+                ws.send("SOUND:tip");
+                play_sound('tip');
+            }
+        }
+
+        function send_message(message) {
+            document.getElementById("tip-field").innerHTML = message;
+            ws.send("TIP:" + message);
+        }
+
+        function start(event) {
+            let serverAddress = document.getElementById("server-field").value;
+            ws = new WebSocket(serverAddress);
+
+            ws.onopen = function(event) {
+                ws.send("ADMIN");
+                ws.send("TIME:");
+                ws.send("TIP:");
+                ws.send("SOUND:start");
+                document.getElementById("tip-field").innerHTML = '';
+                play_sound('start');
+            }
+
+            ws.onmessage = function (event) {
+                console.log(event.data);
+            }
+
+            document.getElementById("input-section").hidden = true;
+            document.getElementById("interact-section").hidden = false;
+
+            let minutes = document.getElementById("minutes-field").value;
+            let now = new Date().getTime();
+            countDownDate = now + (minutes * 60 * 1000);
+
+            // Update the count down every 1 second
+            interval_timer = setInterval(function () {
+
+                // Get today's date and time
+                let now = new Date().getTime();
+
+                // Find the distance between now and the count down date
+                let distance = countDownDate - now;
+
+                // If the count down is finished, write some text
+                if (distance < 0) {
+                    clearInterval(x);
+                    document.getElementById("timer-field").innerHTML = "FAILED";
+                    ws.send("TIME:FAILED");
+                    ws.send("SOUND:failed");
+                    play_sound('failed');
+                } else {
+                    // Time calculations for days, hours, minutes and seconds
+                    let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    lastTimerValue = '';
+                    if (days > 1) {
+                        lastTimerValue += days + ' dagen '
+                    } else if (days > 0) {
+                        lastTimerValue += days + ' dag '
+                    }
+
+                    lastTimerValue += ('0' + hours).slice(-2) + ' : ' + ('0' + minutes).slice(-2) + ' . ' + ('0' + seconds).slice(-2)
+
+                    document.getElementById("timer-field").innerHTML = lastTimerValue;
+                    ws.send("TIME:" + lastTimerValue);
+
+                    if (minutes % 10 === 0 && seconds === 0) {
+                        ws.send("SOUND:storm");
+                        play_sound('storm');
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopIt() {
+            clearInterval(interval_timer);
+            send_message("STOPPED");
+            ws.send("SOUND:failed");
+            play_sound('failed');
+            document.getElementById("input-section").hidden = false;
+            document.getElementById("interact-section").hidden = true;
+        }
+    </script>
+
+</body>
+</html>
