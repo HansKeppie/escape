@@ -17,11 +17,11 @@ There is a small python script (escapeserver.py) that should be running on a com
 
 1. Start the python script: python escapeserver.py
 
-1. Now open the room.html page on a computer with screen inside the escape room.
+1. Now open the room.html page (http://escape.kingandqueenjourneys.com/room.html) on a computer with screen inside the escape room.
 
 1. Fill in the correct IP address of the server, press 'Full Screen' and 'Start'.
 
-1. Now open the admin.html page on a computer in the control room.
+1. Now open the admin.html (http://escape.kingandqueenjourneys.com/admin.html) page on a computer in the control room.
 
 1. Fill in the correct IP address of the server.
 

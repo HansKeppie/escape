@@ -35,6 +35,7 @@ async def handler(websocket, path):
         await send_to_rooms(message)
 
 
+print("Starting the server on port 8765")
 start_server = websockets.serve(handler, port=8765)
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
